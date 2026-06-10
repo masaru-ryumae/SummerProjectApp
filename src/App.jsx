@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { AppProvider } from './context/AppContext'
 import DecisionTree from './components/DecisionTree'
 import RecommendationView from './components/RecommendationView'
 import { matchProjects } from './utils/projectMatcher'
@@ -66,8 +67,9 @@ function App() {
   }
 
   return (
-    <div className={darkMode ? 'dark' : ''}>
-      <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-200">
+    <AppProvider>
+      <div className={darkMode ? 'dark' : ''}>
+        <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-200">
         {/* Header with Dark Mode Toggle */}
         <header className="sticky top-0 z-50 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 backdrop-blur-sm bg-opacity-80 dark:bg-opacity-80">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -112,6 +114,7 @@ function App() {
         </footer>
       </div>
     </div>
+    </AppProvider>
   )
 }
 
