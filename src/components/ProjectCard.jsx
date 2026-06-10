@@ -1,3 +1,5 @@
+import FavoriteButton from './FavoriteButton'
+
 const ProjectCard = ({ project, showExplanation = true, whyMatch = '' }) => {
   if (!project) return null
 
@@ -20,12 +22,17 @@ const ProjectCard = ({ project, showExplanation = true, whyMatch = '' }) => {
     <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg dark:hover:shadow-2xl transition-shadow duration-200">
       {/* Card Header */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          {project.title}
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-          {project.description}
-        </p>
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <div className="flex-1">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              {project.title}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+              {project.description}
+            </p>
+          </div>
+          <FavoriteButton project={project} />
+        </div>
       </div>
 
       {/* Tags Row */}
