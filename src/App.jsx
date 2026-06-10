@@ -6,7 +6,7 @@ import { matchProjects } from './utils/projectMatcher'
 import projectsData from './data/projects.json'
 import './App.css'
 
-function App() {
+function AppContent() {
   // State management
   const [currentStep, setCurrentStep] = useState('questions') // 'questions' or 'results'
   const [answers, setAnswers] = useState(null)
@@ -118,4 +118,10 @@ function App() {
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
+  )
+}
