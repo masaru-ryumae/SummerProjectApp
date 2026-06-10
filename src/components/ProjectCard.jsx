@@ -1,6 +1,12 @@
+import { useState } from 'react'
 import FavoriteButton from './FavoriteButton'
+import ShareButton from './ShareButton'
+import ProgressTracker from './ProgressTracker'
+import RatingStars from './RatingStars'
+import ReviewList from './ReviewList'
 
 const ProjectCard = ({ project, showExplanation = true, whyMatch = '' }) => {
+  const [showProgress, setShowProgress] = useState(false)
   if (!project) return null
 
   const skillLevelColor = {
@@ -31,7 +37,15 @@ const ProjectCard = ({ project, showExplanation = true, whyMatch = '' }) => {
               {project.description}
             </p>
           </div>
-          <FavoriteButton project={project} />
+          <div className="flex gap-2">
+            <FavoriteButton project={project} />
+            <ShareButton project={project} />
+          </div>
+        </div>
+
+        {/* Ratings Section */}
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+          <RatingStars project={project} />
         </div>
       </div>
 
@@ -113,6 +127,23 @@ const ProjectCard = ({ project, showExplanation = true, whyMatch = '' }) => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Progress Tracker */}
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <button
+          onClick={() => setShowProgress(!showProgress)}
+          className="text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+        >
+          {showProgress ? '✓ Hide Progress' : '📊 Track Progress'}
+        </button>
+        {showProgress && <ProgressTracker project={project} className="mt-4" />}
+      </div>
+
+      {/* Reviews Section */}
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Community Reviews</h4>
+        <ReviewList project={project} />
       </div>
 
       {/* Footer CTA */}
