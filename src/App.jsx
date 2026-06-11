@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { AppProvider, useApp } from './context/AppContext'
 import DecisionTree from './components/DecisionTree'
 import RecommendationView from './components/RecommendationView'
+import ProjectStartView from './components/ProjectStartView'
 import FavoritesView from './components/FavoritesView'
 import { matchProjects } from './utils/projectMatcher'
 import projectsData from './data/projects.json'
@@ -11,6 +12,7 @@ function AppContent() {
   const [currentStep, setCurrentStep] = useState('questions')
   const [answers, setAnswers] = useState(null)
   const [topProjects, setTopProjects] = useState([])
+  const [selectedProject, setSelectedProject] = useState(null)
   const { favorites } = useApp()
 
   const [darkMode, setDarkMode] = useState(() => {
@@ -39,6 +41,11 @@ function AppContent() {
     setTopProjects([])
   }
 
+  const handleStartProject = (project) => {
+    setSelectedProject(project)
+    setCurrentStep('projectDetail')
+  }
+
   const handleViewFavorites = () => {
     setCurrentStep('favorites')
   }
@@ -56,6 +63,14 @@ function AppContent() {
           answers={answers}
           topProjects={topProjects}
           onTryAgain={handleTryAgain}
+          onStartProject={handleStartProject}
+        />
+      )
+    } else if (currentStep === 'projectDetail') {
+      return (
+        <ProjectStartView
+          project={selectedProject}
+          onBack={() => setCurrentStep('results')}
         />
       )
     } else if (currentStep === 'favorites') {

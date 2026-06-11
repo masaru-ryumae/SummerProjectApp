@@ -5,7 +5,7 @@ import ProgressTracker from './ProgressTracker'
 import RatingStars from './RatingStars'
 import ReviewList from './ReviewList'
 
-const ProjectCard = ({ project, showExplanation = true, whyMatch = '' }) => {
+const ProjectCard = ({ project, showExplanation = true, whyMatch = '', onStart }) => {
   const [showProgress, setShowProgress] = useState(false)
   if (!project) return null
 
@@ -151,7 +151,10 @@ const ProjectCard = ({ project, showExplanation = true, whyMatch = '' }) => {
         <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
           Ready to dive in? Have all the details you need?
         </p>
-        <button className="w-full px-4 py-2 bg-purple-600 dark:bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors text-sm">
+        <button
+          onClick={() => onStart?.(project)}
+          className="w-full px-4 py-2 bg-purple-600 dark:bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors text-sm"
+        >
           Start This Project
         </button>
       </div>

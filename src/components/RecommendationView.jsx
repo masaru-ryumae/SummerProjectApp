@@ -1,6 +1,6 @@
 import ProjectCard from './ProjectCard'
 
-const RecommendationView = ({ answers, topProjects, onTryAgain }) => {
+const RecommendationView = ({ answers, topProjects, onTryAgain, onStartProject }) => {
   if (!answers || !topProjects) return null
 
   const answerLabels = {
@@ -114,6 +114,7 @@ const RecommendationView = ({ answers, topProjects, onTryAgain }) => {
                 project={project}
                 showExplanation={true}
                 whyMatch={project.explanation || project.whyMatch || 'Great match for you!'}
+                onStart={onStartProject}
               />
             </div>
           ))}
