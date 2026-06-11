@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { A11Y_LABELS } from '../utils/a11y'
 
+// Defect #24 Fix: Accessibility improvements
 const QuestionGroup = ({ title, field, options, answers, handleChange }) => (
   <fieldset className="mb-8 text-left">
     <legend className="text-lg font-semibold text-gray-900 dark:text-white mb-4 block">
@@ -15,6 +17,7 @@ const QuestionGroup = ({ title, field, options, answers, handleChange }) => (
             checked={answers[field] === option}
             onChange={(e) => handleChange(field, e.target.value)}
             className="w-5 h-5 text-purple-600 dark:text-purple-400 accent-purple-600 dark:accent-purple-400 cursor-pointer"
+            aria-label={`${title}: ${option}`}
           />
           <span className="ml-3 text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
             {option}
@@ -192,6 +195,8 @@ const DecisionTree = ({ onGenerate }) => {
               onGenerate(answers);
             }}
             disabled={!allAnswered}
+            aria-label={allAnswered ? 'Find my projects' : 'Please answer all questions to continue'}
+            aria-disabled={!allAnswered}
             className={`w-full py-4 px-6 font-semibold rounded-lg transition-all duration-200 text-lg ${
               allAnswered
                 ? 'bg-purple-600 dark:bg-purple-500 text-white hover:bg-purple-700 dark:hover:bg-purple-600 shadow-lg hover:shadow-xl cursor-pointer'

@@ -1,20 +1,32 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense, lazy } from 'react'
 import { AppProvider, useApp } from './context/AppContext'
 import ErrorBoundary from './components/ErrorBoundary'
 import DecisionTree from './components/DecisionTree'
 import RecommendationView from './components/RecommendationView'
 import FavoritesView from './components/FavoritesView'
-import TeamDashboard from './components/TeamDashboard'
-import KanbanBoard from './components/KanbanBoard'
-import TeamChat from './components/TeamChat'
-import CodeReview from './components/CodeReview'
-import PricingPage from './components/PricingPage'
-import BillingDashboard from './components/BillingDashboard'
-import SubscriptionManager from './components/SubscriptionManager'
 import { matchProjects } from './utils/projectMatcher'
 import { billingService } from './services/billingService'
 import projectsData from './data/projects.json'
 import './App.css'
+
+// Defect #21 Fix: Code splitting with lazy loading
+const TeamDashboard = lazy(() => import('./components/TeamDashboard'))
+const KanbanBoard = lazy(() => import('./components/KanbanBoard'))
+const TeamChat = lazy(() => import('./components/TeamChat'))
+const CodeReview = lazy(() => import('./components/CodeReview'))
+const PricingPage = lazy(() => import('./components/PricingPage'))
+const BillingDashboard = lazy(() => import('./components/BillingDashboard'))
+const SubscriptionManager = lazy(() => import('./components/SubscriptionManager'))
+
+// Loading fallback component
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="text-center">
+      <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <p className="text-gray-600 dark:text-gray-400 mt-4">Loading...</p>
+    </div>
+  </div>
+)
 
 function AppContent() {
   const [currentStep, setCurrentStep] = useState('questions')
@@ -170,31 +182,43 @@ function AppContent() {
       )
     } else if (currentStep === 'pricing') {
       return (
-        <PricingPage
-          userId={userId}
-          currentTier={userProfile?.tier || 'free'}
-          onUpgrade={(tier) => {
-            setCurrentStep('questions')
-          }}
-        />
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingSpinner />}>
+            <PricingPage
+              userId={userId}
+              currentTier={userProfile?.tier || 'free'}
+              onUpgrade={(tier) => {
+                setCurrentStep('questions')
+              }}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )
     } else if (currentStep === 'billing') {
       return (
-        <BillingDashboard
-          userId={userId}
-          onNavigate={(page, data) => {
-            setCurrentStep(page)
-          }}
-        />
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingSpinner />}>
+            <BillingDashboard
+              userId={userId}
+              onNavigate={(page, data) => {
+                setCurrentStep(page)
+              }}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )
     } else if (currentStep === 'subscription') {
       return (
-        <SubscriptionManager
-          userId={userId}
-          onComplete={(tier) => {
-            setCurrentStep('questions')
-          }}
-        />
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingSpinner />}>
+            <SubscriptionManager
+              userId={userId}
+              onComplete={(tier) => {
+                setCurrentStep('questions')
+              }}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )
     }
   }
@@ -202,19 +226,21 @@ function AppContent() {
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-200">
-        <header className="sticky top-0 z-50 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 backdrop-blur-sm bg-opacity-80 dark:bg-opacity-80">
+        <header className="sticky top-0 z-50 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 backdrop-blur-sm bg-opacity-80 dark:bg-opacity-80" role="banner">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">⚡</span>
+              <span className="text-2xl" aria-hidden="true">⚡</span>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                 Summer Project Finder
               </h1>
             </div>
 
+            {/* Defect #24 Fix: Add accessibility labels to buttons */}
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setShowTeamDashboard(true)}
                 className="px-3 py-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 font-medium transition-colors text-sm"
+                aria-label="Open team dashboard"
               >
                 👥 Teams
               </button>
@@ -225,6 +251,8 @@ function AppContent() {
                   else alert('Please create/select a team first')
                 }}
                 className="px-3 py-2 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-200 dark:hover:bg-cyan-900/50 font-medium transition-colors text-sm"
+                aria-label="Open kanban board"
+                aria-disabled={!selectedTeamId}
               >
                 📊 Board
               </button>
@@ -235,6 +263,8 @@ function AppContent() {
                   else alert('Please create/select a team first')
                 }}
                 className="px-3 py-2 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 font-medium transition-colors text-sm"
+                aria-label="Open team chat"
+                aria-disabled={!selectedTeamId}
               >
                 💬 Chat
               </button>
@@ -245,6 +275,8 @@ function AppContent() {
                   else alert('Please create/select a team first')
                 }}
                 className="px-3 py-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 font-medium transition-colors text-sm"
+                aria-label="Open code review"
+                aria-disabled={!selectedTeamId}
               >
                 👁️ Review
               </button>
@@ -252,11 +284,12 @@ function AppContent() {
               <button
                 onClick={handleViewFavorites}
                 className="relative px-4 py-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50 font-medium transition-colors flex items-center gap-2"
+                aria-label={`View saved projects, ${favorites.length} saved`}
               >
                 <span>⭐</span>
                 <span className="hidden sm:inline">Saved</span>
                 {favorites.length > 0 && (
-                  <span className="ml-1 px-2 py-0.5 bg-purple-600 dark:bg-purple-500 text-white text-xs font-bold rounded-full">
+                  <span className="ml-1 px-2 py-0.5 bg-purple-600 dark:bg-purple-500 text-white text-xs font-bold rounded-full" aria-label={`${favorites.length} projects saved`}>
                     {favorites.length}
                   </span>
                 )}
@@ -265,6 +298,7 @@ function AppContent() {
               <button
                 onClick={() => setCurrentStep('pricing')}
                 className="hidden md:flex px-4 py-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 font-medium transition-colors items-center gap-2 text-sm"
+                aria-label="View pricing plans"
               >
                 <span>💎</span>
                 <span>Pricing</span>
@@ -273,6 +307,7 @@ function AppContent() {
               <button
                 onClick={() => setCurrentStep('billing')}
                 className="px-3 sm:px-4 py-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 font-medium transition-colors flex items-center gap-2 text-sm"
+                aria-label={`View billing, current plan: ${userProfile?.tier || 'free'}`}
               >
                 <span>💳</span>
                 <span className="hidden sm:inline text-xs">
@@ -283,7 +318,7 @@ function AppContent() {
               <button
                 onClick={() => setDarkMode(!darkMode)}
                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Toggle dark mode"
+                aria-label={`Toggle dark mode, currently ${darkMode ? 'dark' : 'light'}`}
               >
                 {darkMode ? <span className="text-xl">☀️</span> : <span className="text-xl">🌙</span>}
               </button>
@@ -291,11 +326,11 @@ function AppContent() {
           </div>
         </header>
 
-        <main className="flex-grow">
+        <main className="flex-grow" role="main">
           {renderContent()}
         </main>
 
-        <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-8 px-4">
+        <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-8 px-4" role="contentinfo">
           <div className="max-w-7xl mx-auto text-center text-gray-600 dark:text-gray-400 text-sm">
             <p className="mb-2">
               Built with React + Vite + TailwindCSS • v3.0 (Team Features + Monetization)
@@ -308,31 +343,47 @@ function AppContent() {
 
         {/* Team & Collaboration Modals */}
         {showTeamDashboard && (
-          <TeamDashboard
-            onSelectTeam={(team) => setSelectedTeamId(team.id)}
-            onClose={() => setShowTeamDashboard(false)}
-          />
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingSpinner />}>
+              <TeamDashboard
+                onSelectTeam={(team) => setSelectedTeamId(team.id)}
+                onClose={() => setShowTeamDashboard(false)}
+              />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {showKanban && selectedTeamId && (
-          <KanbanBoard teamId={selectedTeamId} onClose={() => setShowKanban(false)} />
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingSpinner />}>
+              <KanbanBoard teamId={selectedTeamId} onClose={() => setShowKanban(false)} />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {showChat && selectedTeamId && (
-          <TeamChat
-            teamId={selectedTeamId}
-            teamMembers={teamMembers}
-            onClose={() => setShowChat(false)}
-          />
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingSpinner />}>
+              <TeamChat
+                teamId={selectedTeamId}
+                teamMembers={teamMembers}
+                onClose={() => setShowChat(false)}
+              />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {showCodeReview && selectedTeamId && (
-          <CodeReview
-            teamId={selectedTeamId}
-            projectId="project_demo"
-            teamMembers={teamMembers}
-            onClose={() => setShowCodeReview(false)}
-          />
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingSpinner />}>
+              <CodeReview
+                teamId={selectedTeamId}
+                projectId="project_demo"
+                teamMembers={teamMembers}
+                onClose={() => setShowCodeReview(false)}
+              />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </div>
     </div>
