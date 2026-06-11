@@ -3,6 +3,10 @@ import { AppProvider, useApp } from './context/AppContext'
 import DecisionTree from './components/DecisionTree'
 import RecommendationView from './components/RecommendationView'
 import FavoritesView from './components/FavoritesView'
+import TeamDashboard from './components/TeamDashboard'
+import KanbanBoard from './components/KanbanBoard'
+import TeamChat from './components/TeamChat'
+import CodeReview from './components/CodeReview'
 import { matchProjects } from './utils/projectMatcher'
 import projectsData from './data/projects.json'
 import './App.css'
@@ -12,6 +16,16 @@ function AppContent() {
   const [answers, setAnswers] = useState(null)
   const [topProjects, setTopProjects] = useState([])
   const { favorites } = useApp()
+  const [showTeamDashboard, setShowTeamDashboard] = useState(false)
+  const [showKanban, setShowKanban] = useState(false)
+  const [showChat, setShowChat] = useState(false)
+  const [showCodeReview, setShowCodeReview] = useState(false)
+  const [selectedTeamId, setSelectedTeamId] = useState(null)
+  const [teamMembers] = useState([
+    { id: 'member_1', name: 'Alice Johnson', role: 'lead' },
+    { id: 'member_2', name: 'Bob Smith', role: 'member' },
+    { id: 'member_3', name: 'Charlie Brown', role: 'member' }
+  ])
 
   const [darkMode, setDarkMode] = useState(() => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -75,7 +89,44 @@ function AppContent() {
               </h1>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setShowTeamDashboard(true)}
+                className="px-3 py-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 font-medium transition-colors text-sm"
+              >
+                👥 Teams
+              </button>
+
+              <button
+                onClick={() => {
+                  if (selectedTeamId) setShowKanban(true)
+                  else alert('Please create/select a team first')
+                }}
+                className="px-3 py-2 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-200 dark:hover:bg-cyan-900/50 font-medium transition-colors text-sm"
+              >
+                📊 Board
+              </button>
+
+              <button
+                onClick={() => {
+                  if (selectedTeamId) setShowChat(true)
+                  else alert('Please create/select a team first')
+                }}
+                className="px-3 py-2 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 font-medium transition-colors text-sm"
+              >
+                💬 Chat
+              </button>
+
+              <button
+                onClick={() => {
+                  if (selectedTeamId) setShowCodeReview(true)
+                  else alert('Please create/select a team first')
+                }}
+                className="px-3 py-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 font-medium transition-colors text-sm"
+              >
+                👁️ Review
+              </button>
+
               <button
                 onClick={handleViewFavorites}
                 className="relative px-4 py-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50 font-medium transition-colors flex items-center gap-2"
@@ -107,13 +158,42 @@ function AppContent() {
         <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-8 px-4">
           <div className="max-w-7xl mx-auto text-center text-gray-600 dark:text-gray-400 text-sm">
             <p className="mb-2">
-              Built with React + Vite + TailwindCSS
+              Built with React + Vite + TailwindCSS • v3.0 Team Features
             </p>
             <p>
               Find your perfect summer project and build something amazing.
             </p>
           </div>
         </footer>
+
+        {/* Team Feature Modals */}
+        {showTeamDashboard && (
+          <TeamDashboard
+            onSelectTeam={(team) => setSelectedTeamId(team.id)}
+            onClose={() => setShowTeamDashboard(false)}
+          />
+        )}
+
+        {showKanban && selectedTeamId && (
+          <KanbanBoard teamId={selectedTeamId} onClose={() => setShowKanban(false)} />
+        )}
+
+        {showChat && selectedTeamId && (
+          <TeamChat
+            teamId={selectedTeamId}
+            teamMembers={teamMembers}
+            onClose={() => setShowChat(false)}
+          />
+        )}
+
+        {showCodeReview && selectedTeamId && (
+          <CodeReview
+            teamId={selectedTeamId}
+            projectId="project_demo"
+            teamMembers={teamMembers}
+            onClose={() => setShowCodeReview(false)}
+          />
+        )}
       </div>
     </div>
   )
