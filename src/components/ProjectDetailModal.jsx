@@ -152,9 +152,9 @@ const ProjectDetailModal = ({ project, isOpen, onClose }) => {
                 <span>🛠️</span> Required Skills
               </h3>
               <div className="flex flex-wrap gap-2">
-                {project.requiredSkills && project.requiredSkills.map((skill, idx) => (
+                {project.requiredSkills && project.requiredSkills.map((skill) => (
                   <span
-                    key={idx}
+                    key={skill}
                     className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium"
                   >
                     {skill}
@@ -169,8 +169,8 @@ const ProjectDetailModal = ({ project, isOpen, onClose }) => {
                 <span>📦</span> Parts Needed
               </h3>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
-                {project.partsNeeded && project.partsNeeded.map((part, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
+                {project.partsNeeded && project.partsNeeded.map((part) => (
+                  <div key={part} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
                     <span className="text-purple-600 dark:text-purple-400 font-bold mt-0.5">•</span>
                     <span>{part}</span>
                   </div>

@@ -6,6 +6,20 @@ const PricingPage = ({ userId, currentTier = 'free', onUpgrade }) => {
   const [selectedBillingCycle, setSelectedBillingCycle] = useState('monthly');
   const [features, setFeatures] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Defect #17 Fix: Prevent race conditions on unmount
+  const isMountedRef = React.useRef(true);
+  const timeoutIdRef = React.useRef(null);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+    };
+  }, []);
 
   const tiers = Object.values(PRICING_TIERS).sort((a, b) => a.price - b.price);
 
@@ -20,17 +34,46 @@ const PricingPage = ({ userId, currentTier = 'free', onUpgrade }) => {
     { name: 'Support', free: 'Community', pro: 'Email', enterprise: 'Priority' },
   ];
 
-  const handleUpgrade = (tier) => {
-    if (tier === currentTier) return;
+  const handleUpgrade = async (tier) => {
+    if (tier === currentTier) {
+      setError('You are already on this plan');
+      return;
+    }
 
-    setLoading(true);
-    // Simulate upgrade process
-    setTimeout(() => {
-      setLoading(false);
-      if (onUpgrade) {
-        onUpgrade(tier);
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Defect #17 Fix: Proper async handling with cleanup
+      const subscription = await billingService.upgradeTier(userId, tier);
+
+      if (!isMountedRef.current) return;
+
+      if (!subscription) {
+        throw new Error('Failed to upgrade plan');
       }
-    }, 1000);
+
+      // Clear any pending timeouts
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+
+      // Schedule upgrade callback with cleanup
+      timeoutIdRef.current = setTimeout(() => {
+        if (isMountedRef.current && onUpgrade) {
+          onUpgrade(tier);
+        }
+      }, 1000);
+    } catch (err) {
+      if (isMountedRef.current) {
+        setError('Upgrade failed: ' + err.message);
+        setLoading(false);
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
+    }
   };
 
   return (
@@ -136,8 +179,8 @@ const PricingPage = ({ userId, currentTier = 'free', onUpgrade }) => {
 
                   {/* Features List */}
                   <div className="space-y-4">
-                    {tier.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-start gap-3">
+                    {tier.features.map((feature) => (
+                      <div key={feature} className="flex items-start gap-3">
                         <span className={`text-lg ${
                           isPopular ? 'text-blue-100' : 'text-green-400'
                         }`}>
@@ -174,8 +217,8 @@ const PricingPage = ({ userId, currentTier = 'free', onUpgrade }) => {
                 </tr>
               </thead>
               <tbody>
-                {featureComparison.map((feature, idx) => (
-                  <tr key={idx} className={idx % 2 === 0 ? 'bg-slate-750' : 'bg-slate-800'}>
+                {featureComparison.map((feature) => (
+                  <tr key={feature.name} className={'bg-slate-800'}>
                     <td className="px-6 py-4 font-medium text-slate-200">{feature.name}</td>
                     <td className="px-6 py-4 text-center text-slate-400">{feature.free}</td>
                     <td className="px-6 py-4 text-center text-slate-100">{feature.pro}</td>
@@ -215,8 +258,8 @@ const PricingPage = ({ userId, currentTier = 'free', onUpgrade }) => {
                 q: 'Can I cancel anytime?',
                 a: 'Absolutely! You can cancel your subscription at any time. You will lose access to premium features after your current billing period ends.',
               },
-            ].map((faq, idx) => (
-              <div key={idx} className="bg-slate-800 rounded-lg p-6">
+            ].map((faq) => (
+              <div key={faq.q} className="bg-slate-800 rounded-lg p-6">
                 <h3 className="font-semibold text-white mb-2">{faq.q}</h3>
                 <p className="text-slate-400">{faq.a}</p>
               </div>

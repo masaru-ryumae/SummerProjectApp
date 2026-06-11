@@ -9,6 +9,15 @@ const SubscriptionManager = ({ userId, onComplete }) => {
   const [selectedTier, setSelectedTier] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
+  // Defect #17 Fix: Prevent race conditions on unmount
+  const isMountedRef = React.useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     loadProfile();
   }, [userId]);
@@ -17,63 +26,101 @@ const SubscriptionManager = ({ userId, onComplete }) => {
     try {
       setLoading(true);
       const profile = await billingService.getUserBillingProfile(userId);
-      setProfile(profile);
-      if (profile) {
-        setSelectedTier(profile.tier);
+
+      if (!isMountedRef.current) return;
+
+      if (!profile) {
+        throw new Error('Failed to load billing profile');
       }
+
+      setProfile(profile);
+      setSelectedTier(profile.tier);
     } catch (err) {
-      setError(err.message);
+      if (isMountedRef.current) {
+        setError(err.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
   const handleUpgrade = async (tier) => {
-    if (tier === profile.tier) {
+    if (!profile || tier === profile.tier) {
       setError('You are already on this plan');
       return;
     }
 
+    let timeoutId = null;
+
     try {
       setLoading(true);
+      setError(null);
       const subscription = await billingService.upgradeTier(userId, tier);
-      if (subscription) {
-        setProfile({
-          ...profile,
-          tier,
-          subscription,
-        });
-        setSelectedTier(tier);
-        setShowConfirmation(true);
-        setTimeout(() => {
-          if (onComplete) {
-            onComplete(tier);
-          }
-        }, 2000);
+
+      if (!isMountedRef.current) return;
+
+      if (!subscription) {
+        throw new Error('Failed to upgrade subscription');
       }
+
+      setProfile({
+        ...profile,
+        tier,
+        subscription,
+      });
+      setSelectedTier(tier);
+      setShowConfirmation(true);
+
+      // Defect #17 Fix: Clean up timeout on unmount
+      timeoutId = setTimeout(() => {
+        if (isMountedRef.current && onComplete) {
+          onComplete(tier);
+        }
+      }, 2000);
     } catch (err) {
-      setError(err.message);
+      if (isMountedRef.current) {
+        setError('Upgrade failed: ' + err.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
+      return () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      };
     }
   };
 
   const handleDowngrade = async (tier) => {
     try {
       setLoading(true);
+      setError(null);
       const subscription = await billingService.downgradeOrCancelSubscription(userId, tier);
-      if (subscription) {
-        setProfile({
-          ...profile,
-          tier,
-          subscription,
-        });
-        setSelectedTier(tier);
+
+      if (!isMountedRef.current) return;
+
+      if (!subscription) {
+        throw new Error('Failed to downgrade subscription');
       }
+
+      setProfile({
+        ...profile,
+        tier,
+        subscription,
+      });
+      setSelectedTier(tier);
     } catch (err) {
-      setError(err.message);
+      if (isMountedRef.current) {
+        setError('Downgrade failed: ' + err.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -84,19 +131,29 @@ const SubscriptionManager = ({ userId, onComplete }) => {
 
     try {
       setLoading(true);
+      setError(null);
       const subscription = await billingService.downgradeOrCancelSubscription(userId);
-      if (subscription) {
-        setProfile({
-          ...profile,
-          tier: 'free',
-          subscription,
-        });
-        setSelectedTier('free');
+
+      if (!isMountedRef.current) return;
+
+      if (!subscription) {
+        throw new Error('Failed to cancel subscription');
       }
+
+      setProfile({
+        ...profile,
+        tier: 'free',
+        subscription,
+      });
+      setSelectedTier('free');
     } catch (err) {
-      setError(err.message);
+      if (isMountedRef.current) {
+        setError('Cancellation failed: ' + err.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -175,8 +232,8 @@ const SubscriptionManager = ({ userId, onComplete }) => {
                 )}
 
                 <div className="space-y-2 mb-6">
-                  {tier.features.slice(0, 4).map((feature, idx) => (
-                    <div key={idx} className="flex items-start gap-2">
+                  {tier.features.slice(0, 4).map((feature) => (
+                    <div key={feature} className="flex items-start gap-2">
                       <span className="text-green-400 text-sm">✓</span>
                       <span className="text-slate-300 text-sm">{feature}</span>
                     </div>

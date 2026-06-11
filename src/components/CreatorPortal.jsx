@@ -205,9 +205,9 @@ export default function CreatorPortal() {
                 { title: 'React Native Mobile App Boilerplate', downloads: 1840, earnings: 110 },
                 { title: 'E-commerce Store with Stripe', downloads: 1100, earnings: 83 },
                 { title: 'Data Visualization Dashboard', downloads: 1450, earnings: 104 }
-              ].map((item, idx) => (
+              ].map((item) => (
                 <div
-                  key={idx}
+                  key={item.title}
                   className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg"
                 >
                   <div>

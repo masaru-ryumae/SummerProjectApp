@@ -49,6 +49,35 @@ const DecisionTree = ({ onGenerate }) => {
     }))
   }
 
+  // Defect #18 Fix: Validate answers before submission
+  const validateAnswers = (answers) => {
+    const validFields = ['interest', 'skillLevel', 'budget', 'timePerWeek', 'location', 'priority'];
+
+    // Check all required fields are present
+    for (const field of validFields) {
+      if (!answers[field] || typeof answers[field] !== 'string') {
+        return false;
+      }
+    }
+
+    // Validate answer values are from allowed options
+    const validInterests = new Set(interests);
+    const validSkillLevels = new Set(skillLevels);
+    const validBudgets = new Set(budgets);
+    const validTimes = new Set(times);
+    const validLocations = new Set(locations);
+    const validPriorities = new Set(priorities);
+
+    return (
+      validInterests.has(answers.interest) &&
+      validSkillLevels.has(answers.skillLevel) &&
+      validBudgets.has(answers.budget) &&
+      validTimes.has(answers.timePerWeek) &&
+      validLocations.has(answers.location) &&
+      validPriorities.has(answers.priority)
+    );
+  };
+
   const allAnswered =
     answers.interest &&
     answers.skillLevel &&
@@ -154,7 +183,14 @@ const DecisionTree = ({ onGenerate }) => {
           {/* Submit Button */}
           <button
             type="button"
-            onClick={() => onGenerate(answers)}
+            onClick={() => {
+              // Defect #18 Fix: Validate answers before submission
+              if (!validateAnswers(answers)) {
+                alert('Please answer all questions with valid options');
+                return;
+              }
+              onGenerate(answers);
+            }}
             disabled={!allAnswered}
             className={`w-full py-4 px-6 font-semibold rounded-lg transition-all duration-200 text-lg ${
               allAnswered

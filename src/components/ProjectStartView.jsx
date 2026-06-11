@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
+import { isValidUrl, getExternalLinkRel } from '../utils/urlValidator'
 
 const ProjectStartView = ({ project, onBack }) => {
   const { currentUser } = useApp()
@@ -109,7 +110,7 @@ const ProjectStartView = ({ project, onBack }) => {
             <div className="space-y-3">
               {steps.map((step, idx) => (
                 <div
-                  key={idx}
+                  key={step}
                   className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start gap-3">
@@ -180,7 +181,7 @@ const ProjectStartView = ({ project, onBack }) => {
         </div>
 
         {/* Resources */}
-        {project.resourceUrl && (
+        {project.resourceUrl && isValidUrl(project.resourceUrl) && (
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Resources
@@ -188,7 +189,7 @@ const ProjectStartView = ({ project, onBack }) => {
             <a
               href={project.resourceUrl}
               target="_blank"
-              rel="noopener noreferrer"
+              rel={getExternalLinkRel()}
               className="block p-4 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg hover:shadow-md transition-shadow"
             >
               <p className="text-sm text-purple-600 dark:text-purple-400 font-medium mb-1">

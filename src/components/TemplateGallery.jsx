@@ -290,8 +290,8 @@ export default function TemplateGallery({ searchQuery }) {
               <div>
                 <h3 className="font-bold text-gray-900 dark:text-white mb-3">What's Included</h3>
                 <ul className="space-y-2">
-                  {selectedTemplate.included.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
+                  {selectedTemplate.included.map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
                       <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
                       <span>{item}</span>
                     </li>

@@ -288,7 +288,7 @@ export default function TutorialLibrary({ searchQuery }) {
                 <h3 className="font-bold text-gray-900 dark:text-white mb-3">Step-by-Step Guide</h3>
                 <ol className="space-y-2">
                   {selectedTutorial.stepByStep.map((step, idx) => (
-                    <li key={idx} className="flex gap-3 text-gray-700 dark:text-gray-300">
+                    <li key={step} className="flex gap-3 text-gray-700 dark:text-gray-300">
                       <span className="flex-shrink-0 font-bold text-blue-600 dark:text-blue-400 min-w-6">
                         {idx + 1}.
                       </span>

@@ -189,8 +189,8 @@ const BillingDashboard = ({ userId, onNavigate }) => {
                   { name: 'API Access', access: profile.tier === 'pro' || profile.tier === 'enterprise' },
                   { name: 'Custom Integrations', access: profile.tier === 'pro' || profile.tier === 'enterprise' },
                   { name: 'White-label', access: profile.tier === 'enterprise' },
-                ].map((feature, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
+                ].map((feature) => (
+                  <div key={feature.name} className="flex items-center gap-3">
                     <span className={`text-lg ${feature.access ? 'text-green-400' : 'text-slate-500'}`}>
                       {feature.access ? '✓' : '✗'}
                     </span>
