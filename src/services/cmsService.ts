@@ -1,0 +1,5 @@
+interface CMSContent { id: string; title: string; description: string; content: string; category: string; tags: string[]; status: string; version: number; createdAt: string; updatedAt: string; views: number; engagement: number; seoOptimized: boolean }
+export const validateContent = (content: Partial<CMSContent>) => ({ isValid: !!(content.title?.trim() && content.content?.trim()), errors: [] })
+export const publishContent = (content: CMSContent) => ({ ...content, status: 'published', updatedAt: new Date().toISOString() })
+export const calculateSEOScore = (content: CMSContent) => Math.min(Math.round((content.title.length >= 30 ? 20 : 0) + (content.description?.length >= 120 ? 20 : 0) + (content.content.split(/\s+/).length >= 300 ? 20 : 0) + (content.tags.length >= 3 ? 20 : 0) + (content.seoOptimized ? 20 : 0)), 100)
+export const contentStorage = { save: (c: CMSContent) => localStorage.setItem('cms_content', JSON.stringify([...(JSON.parse(localStorage.getItem('cms_content') || '[]')), c])), getAll: () => JSON.parse(localStorage.getItem('cms_content') || '[]') }

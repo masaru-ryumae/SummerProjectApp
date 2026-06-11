@@ -3,12 +3,14 @@ import { AppProvider, useApp } from './context/AppContext'
 import DecisionTree from './components/DecisionTree'
 import RecommendationView from './components/RecommendationView'
 import FavoritesView from './components/FavoritesView'
+import ContentStudio from './components/ContentStudio'
 import { matchProjects } from './utils/projectMatcher'
 import projectsData from './data/projects.json'
 import './App.css'
 
 function AppContent() {
   const [currentStep, setCurrentStep] = useState('questions')
+  const [showContentStudio, setShowContentStudio] = useState(false)
   const [answers, setAnswers] = useState(null)
   const [topProjects, setTopProjects] = useState([])
   const { favorites } = useApp()
@@ -48,7 +50,9 @@ function AppContent() {
   }
 
   const renderContent = () => {
-    if (currentStep === 'questions') {
+    if (showContentStudio) {
+      return <ContentStudio onBack={() => setShowContentStudio(false)} />
+    } else if (currentStep === 'questions') {
       return <DecisionTree onGenerate={handleGenerateRecommendations} />
     } else if (currentStep === 'results') {
       return (
@@ -76,18 +80,40 @@ function AppContent() {
             </div>
 
             <div className="flex items-center gap-4">
-              <button
-                onClick={handleViewFavorites}
-                className="relative px-4 py-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50 font-medium transition-colors flex items-center gap-2"
-              >
-                <span>⭐</span>
-                <span className="hidden sm:inline">Saved</span>
-                {favorites.length > 0 && (
-                  <span className="ml-1 px-2 py-0.5 bg-purple-600 dark:bg-purple-500 text-white text-xs font-bold rounded-full">
-                    {favorites.length}
-                  </span>
-                )}
-              </button>
+              {showContentStudio && (
+                <button
+                  onClick={() => setShowContentStudio(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 font-medium transition-colors"
+                >
+                  ← Back to Project Finder
+                </button>
+              )}
+
+              {!showContentStudio && (
+                <>
+                  <button
+                    onClick={handleViewFavorites}
+                    className="relative px-4 py-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50 font-medium transition-colors flex items-center gap-2"
+                  >
+                    <span>⭐</span>
+                    <span className="hidden sm:inline">Saved</span>
+                    {favorites.length > 0 && (
+                      <span className="ml-1 px-2 py-0.5 bg-purple-600 dark:bg-purple-500 text-white text-xs font-bold rounded-full">
+                        {favorites.length}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setShowContentStudio(true)}
+                    className="px-4 py-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 font-medium transition-colors flex items-center gap-2"
+                    title="Content Studio - Tutorials, Docs, CMS, Community"
+                  >
+                    <span>🎨</span>
+                    <span className="hidden sm:inline">Studio</span>
+                  </button>
+                </>
+              )}
 
               <button
                 onClick={() => setDarkMode(!darkMode)}
