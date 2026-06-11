@@ -7,7 +7,11 @@ import TeamDashboard from './components/TeamDashboard'
 import KanbanBoard from './components/KanbanBoard'
 import TeamChat from './components/TeamChat'
 import CodeReview from './components/CodeReview'
+import PricingPage from './components/PricingPage'
+import BillingDashboard from './components/BillingDashboard'
+import SubscriptionManager from './components/SubscriptionManager'
 import { matchProjects } from './utils/projectMatcher'
+import { billingService } from './services/billingService'
 import projectsData from './data/projects.json'
 import './App.css'
 
@@ -21,6 +25,8 @@ function AppContent() {
   const [showChat, setShowChat] = useState(false)
   const [showCodeReview, setShowCodeReview] = useState(false)
   const [selectedTeamId, setSelectedTeamId] = useState(null)
+  const [userProfile, setUserProfile] = useState(null)
+  const [userId] = useState('user_demo_123')
   const [teamMembers] = useState([
     { id: 'member_1', name: 'Alice Johnson', role: 'lead' },
     { id: 'member_2', name: 'Bob Smith', role: 'member' },
@@ -30,6 +36,24 @@ function AppContent() {
   const [darkMode, setDarkMode] = useState(() => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
+
+  // Initialize user billing profile
+  useEffect(() => {
+    const initBilling = async () => {
+      const profile = await billingService.getUserBillingProfile(userId)
+      if (!profile) {
+        const newProfile = await billingService.initializeUserBilling(
+          userId,
+          'demo@example.com',
+          'Demo User'
+        )
+        setUserProfile(newProfile)
+      } else {
+        setUserProfile(profile)
+      }
+    }
+    initBilling()
+  }, [userId])
 
   useEffect(() => {
     if (darkMode) {
@@ -74,6 +98,34 @@ function AppContent() {
       )
     } else if (currentStep === 'favorites') {
       return <FavoritesView onBack={handleBackFromFavorites} />
+    } else if (currentStep === 'pricing') {
+      return (
+        <PricingPage
+          userId={userId}
+          currentTier={userProfile?.tier || 'free'}
+          onUpgrade={(tier) => {
+            setCurrentStep('questions')
+          }}
+        />
+      )
+    } else if (currentStep === 'billing') {
+      return (
+        <BillingDashboard
+          userId={userId}
+          onNavigate={(page, data) => {
+            setCurrentStep(page)
+          }}
+        />
+      )
+    } else if (currentStep === 'subscription') {
+      return (
+        <SubscriptionManager
+          userId={userId}
+          onComplete={(tier) => {
+            setCurrentStep('questions')
+          }}
+        />
+      )
     }
   }
 
@@ -141,6 +193,24 @@ function AppContent() {
               </button>
 
               <button
+                onClick={() => setCurrentStep('pricing')}
+                className="hidden md:flex px-4 py-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 font-medium transition-colors items-center gap-2 text-sm"
+              >
+                <span>💎</span>
+                <span>Pricing</span>
+              </button>
+
+              <button
+                onClick={() => setCurrentStep('billing')}
+                className="px-3 sm:px-4 py-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 font-medium transition-colors flex items-center gap-2 text-sm"
+              >
+                <span>💳</span>
+                <span className="hidden sm:inline text-xs">
+                  {userProfile?.tier || 'free'}
+                </span>
+              </button>
+
+              <button
                 onClick={() => setDarkMode(!darkMode)}
                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 aria-label="Toggle dark mode"
@@ -158,7 +228,7 @@ function AppContent() {
         <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-8 px-4">
           <div className="max-w-7xl mx-auto text-center text-gray-600 dark:text-gray-400 text-sm">
             <p className="mb-2">
-              Built with React + Vite + TailwindCSS • v3.0 Team Features
+              Built with React + Vite + TailwindCSS • v3.0 (Team Features + Monetization)
             </p>
             <p>
               Find your perfect summer project and build something amazing.
@@ -166,7 +236,7 @@ function AppContent() {
           </div>
         </footer>
 
-        {/* Team Feature Modals */}
+        {/* Team & Collaboration Modals */}
         {showTeamDashboard && (
           <TeamDashboard
             onSelectTeam={(team) => setSelectedTeamId(team.id)}
