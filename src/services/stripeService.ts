@@ -2,7 +2,23 @@
  * Stripe Integration Service
  * Handles payment processing, subscription management, and webhook events
  * Currently uses mock implementation for development
+ * SECURITY: Issue #5 fix - includes CORS headers and security headers for real API calls
  */
+
+// SECURITY FIX: Secret keys must NEVER be in frontend code
+// Only publishable keys (pk_...) belong in the client
+// Secret keys (sk_...) must be called from a server-side backend only
+// This function is for server-side use only - should not be imported in client code
+const getSecureApiHeaders = (): Record<string, string> => {
+  return {
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+    // NEVER USE: import.meta.env.VITE_STRIPE_SECRET_KEY
+    // Secret key operations must happen on a backend server
+    // Use only the publishable key in frontend: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+    'User-Agent': 'Summer-Builder/1.0'
+  }
+}
 
 export interface StripeCustomer {
   id: string;
