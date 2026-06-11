@@ -1,4 +1,12 @@
+import { useState } from 'react'
+import FavoriteButton from './FavoriteButton'
+import ShareButton from './ShareButton'
+import ProgressTracker from './ProgressTracker'
+import RatingStars from './RatingStars'
+import ReviewList from './ReviewList'
+
 const ProjectCard = ({ project, showExplanation = true, whyMatch = '' }) => {
+  const [showProgress, setShowProgress] = useState(false)
   if (!project) return null
 
   const skillLevelColor = {
@@ -20,12 +28,25 @@ const ProjectCard = ({ project, showExplanation = true, whyMatch = '' }) => {
     <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg dark:hover:shadow-2xl transition-shadow duration-200">
       {/* Card Header */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          {project.title}
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-          {project.description}
-        </p>
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <div className="flex-1">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              {project.title}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+              {project.description}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <FavoriteButton project={project} />
+            <ShareButton project={project} />
+          </div>
+        </div>
+
+        {/* Ratings Section */}
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+          <RatingStars project={project} />
+        </div>
       </div>
 
       {/* Tags Row */}
@@ -106,6 +127,23 @@ const ProjectCard = ({ project, showExplanation = true, whyMatch = '' }) => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Progress Tracker */}
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <button
+          onClick={() => setShowProgress(!showProgress)}
+          className="text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+        >
+          {showProgress ? '✓ Hide Progress' : '📊 Track Progress'}
+        </button>
+        {showProgress && <ProgressTracker project={project} className="mt-4" />}
+      </div>
+
+      {/* Reviews Section */}
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Community Reviews</h4>
+        <ReviewList project={project} />
       </div>
 
       {/* Footer CTA */}
