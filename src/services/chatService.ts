@@ -68,16 +68,59 @@ class ChatService {
       const threadData = localStorage.getItem(this.threadsKey);
       const notifData = localStorage.getItem(this.notificationsKey);
 
+      // Defect #10 Fix: Validate structure before using
       if (msgData) {
-        const parsed = JSON.parse(msgData);
-        this.messages = new Map(Object.entries(parsed));
+        try {
+          const parsed = JSON.parse(msgData);
+          // Validate structure
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            this.messages = new Map(Object.entries(parsed));
+          } else {
+            console.warn('Invalid messages format in storage, clearing');
+            localStorage.removeItem(this.storageKey);
+            this.messages = new Map();
+          }
+        } catch (parseError) {
+          console.warn('Failed to parse messages from storage, clearing');
+          localStorage.removeItem(this.storageKey);
+          this.messages = new Map();
+        }
       }
+
       if (threadData) {
-        const parsed = JSON.parse(threadData);
-        this.threads = new Map(Object.entries(parsed));
+        try {
+          const parsed = JSON.parse(threadData);
+          // Validate structure
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            this.threads = new Map(Object.entries(parsed));
+          } else {
+            console.warn('Invalid threads format in storage, clearing');
+            localStorage.removeItem(this.threadsKey);
+            this.threads = new Map();
+          }
+        } catch (parseError) {
+          console.warn('Failed to parse threads from storage, clearing');
+          localStorage.removeItem(this.threadsKey);
+          this.threads = new Map();
+        }
       }
+
       if (notifData) {
-        this.notifications = JSON.parse(notifData);
+        try {
+          const parsed = JSON.parse(notifData);
+          // Validate structure
+          if (Array.isArray(parsed)) {
+            this.notifications = parsed;
+          } else {
+            console.warn('Invalid notifications format in storage, clearing');
+            localStorage.removeItem(this.notificationsKey);
+            this.notifications = [];
+          }
+        } catch (parseError) {
+          console.warn('Failed to parse notifications from storage, clearing');
+          localStorage.removeItem(this.notificationsKey);
+          this.notifications = [];
+        }
       }
     } catch (error) {
       console.error('Error loading chat data from storage:', error);

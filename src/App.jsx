@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AppProvider, useApp } from './context/AppContext'
+import ErrorBoundary from './components/ErrorBoundary'
 import DecisionTree from './components/DecisionTree'
 import RecommendationView from './components/RecommendationView'
 import FavoritesView from './components/FavoritesView'
@@ -26,6 +27,8 @@ function AppContent() {
   const [showCodeReview, setShowCodeReview] = useState(false)
   const [selectedTeamId, setSelectedTeamId] = useState(null)
   const [userProfile, setUserProfile] = useState(null)
+  const [billingError, setBillingError] = useState(null)
+  const [isLoadingBilling, setIsLoadingBilling] = useState(true)
   const [userId] = useState('user_demo_123')
   const [teamMembers] = useState([
     { id: 'member_1', name: 'Alice Johnson', role: 'lead' },
@@ -37,23 +40,57 @@ function AppContent() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
 
-  // Initialize user billing profile
+  // Defect #9 Fix: Proper async error handling with try/catch and cleanup
+  const isMountedRef = { current: true }
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
   useEffect(() => {
     const initBilling = async () => {
-      const profile = await billingService.getUserBillingProfile(userId)
-      if (!profile) {
-        const newProfile = await billingService.initializeUserBilling(
-          userId,
-          'demo@example.com',
-          'Demo User'
-        )
-        setUserProfile(newProfile)
-      } else {
-        setUserProfile(profile)
+      try {
+        setIsLoadingBilling(true)
+        setBillingError(null)
+
+        const profile = await billingService.getUserBillingProfile(userId)
+
+        if (!isMountedRef.current) return
+
+        if (!profile) {
+          const newProfile = await billingService.initializeUserBilling(
+            userId,
+            'demo@example.com',
+            'Demo User'
+          )
+
+          if (!isMountedRef.current) return
+
+          if (!newProfile || !newProfile.id) {
+            throw new Error('Failed to initialize billing profile')
+          }
+
+          setUserProfile(newProfile)
+        } else {
+          setUserProfile(profile)
+        }
+      } catch (error) {
+        console.error('Billing initialization error:', error)
+        if (isMountedRef.current) {
+          setBillingError('Failed to initialize billing: ' + error.message)
+          setUserProfile(null)
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoadingBilling(false)
+        }
       }
     }
+
     initBilling()
-  }, [userId])
+  }, [userId, billingService])
 
   useEffect(() => {
     if (darkMode) {
@@ -63,13 +100,35 @@ function AppContent() {
     }
   }, [darkMode])
 
-  const handleGenerateRecommendations = (userAnswers) => {
-    setAnswers(userAnswers)
-    const matchResult = matchProjects(userAnswers, projectsData)
-    const projects = Array.isArray(matchResult) ? matchResult : (matchResult.topProjects || [])
-    setTopProjects(projects)
-    setCurrentStep('results')
-  }
+  // Defect #13 Fix: Validate input before processing
+  const handleGenerateRecommendations = useCallback((userAnswers) => {
+    try {
+      // Validate input
+      if (!userAnswers || typeof userAnswers !== 'object') {
+        throw new Error('Invalid user answers provided');
+      }
+
+      setAnswers(userAnswers)
+      const matchResult = matchProjects(userAnswers, projectsData)
+
+      // Validate result
+      let projects = []
+      if (Array.isArray(matchResult)) {
+        projects = matchResult
+      } else if (matchResult && Array.isArray(matchResult.topProjects)) {
+        projects = matchResult.topProjects
+      } else if (matchResult === null || matchResult === undefined) {
+        console.warn('matchProjects returned null/undefined')
+        projects = []
+      }
+
+      setTopProjects(projects)
+      setCurrentStep('results')
+    } catch (error) {
+      console.error('Failed to generate recommendations:', error)
+      alert('Failed to generate recommendations: ' + error.message)
+    }
+  }, [])
 
   const handleTryAgain = () => {
     setCurrentStep('questions')
@@ -86,18 +145,29 @@ function AppContent() {
   }
 
   const renderContent = () => {
+    // Defect #12 Fix: Wrap all components in ErrorBoundary
     if (currentStep === 'questions') {
-      return <DecisionTree onGenerate={handleGenerateRecommendations} />
+      return (
+        <ErrorBoundary>
+          <DecisionTree onGenerate={handleGenerateRecommendations} />
+        </ErrorBoundary>
+      )
     } else if (currentStep === 'results') {
       return (
-        <RecommendationView
-          answers={answers}
-          topProjects={topProjects}
-          onTryAgain={handleTryAgain}
-        />
+        <ErrorBoundary>
+          <RecommendationView
+            answers={answers}
+            topProjects={topProjects}
+            onTryAgain={handleTryAgain}
+          />
+        </ErrorBoundary>
       )
     } else if (currentStep === 'favorites') {
-      return <FavoritesView onBack={handleBackFromFavorites} />
+      return (
+        <ErrorBoundary>
+          <FavoritesView onBack={handleBackFromFavorites} />
+        </ErrorBoundary>
+      )
     } else if (currentStep === 'pricing') {
       return (
         <PricingPage

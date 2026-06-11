@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { billingService } from '../services/billingService';
 import { PRICING_TIERS } from '../services/stripeService';
 
@@ -11,6 +11,8 @@ const BillingDashboard = ({ userId, onNavigate }) => {
   const [showAddCard, setShowAddCard] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [couponDiscount, setCouponDiscount] = useState(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false); // Defect #11: Loading state
+  const [couponError, setCouponError] = useState(null); // Defect #11: Error feedback
 
   useEffect(() => {
     loadBillingData();
@@ -29,17 +31,30 @@ const BillingDashboard = ({ userId, onNavigate }) => {
     setLoading(false);
   };
 
-  const applyCoupon = async () => {
-    if (!couponCode.trim()) return;
+  // Defect #11 Fix: Add loading state and error handling
+  const applyCoupon = useCallback(async () => {
+    if (!couponCode.trim() || isApplyingCoupon) return;
 
-    const result = await billingService.applyCoupon(userId, couponCode.toUpperCase());
-    if (result) {
-      setCouponDiscount(result);
-      setCouponCode('');
-    } else {
-      alert('Invalid coupon code');
+    try {
+      setIsApplyingCoupon(true);
+      setCouponError(null);
+
+      const result = await billingService.applyCoupon(userId, couponCode.toUpperCase());
+
+      if (result) {
+        setCouponDiscount(result);
+        setCouponCode('');
+        setCouponError(null);
+      } else {
+        setCouponError('Invalid coupon code');
+      }
+    } catch (error) {
+      console.error('Coupon application error:', error);
+      setCouponError('Failed to apply coupon: ' + error.message);
+    } finally {
+      setIsApplyingCoupon(false);
     }
-  };
+  }, [couponCode, userId, isApplyingCoupon]);
 
   const handleUpgradePlan = (tier) => {
     if (onNavigate) {
@@ -205,11 +220,21 @@ const BillingDashboard = ({ userId, onNavigate }) => {
                 />
                 <button
                   onClick={applyCoupon}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition"
+                  disabled={isApplyingCoupon || !couponCode.trim()}
+                  className={`px-6 py-2 rounded-lg font-medium transition ${
+                    isApplyingCoupon || !couponCode.trim()
+                      ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
                 >
-                  Apply
+                  {isApplyingCoupon ? 'Applying...' : 'Apply'}
                 </button>
               </div>
+              {couponError && (
+                <div className="bg-red-900/30 border border-red-600 rounded-lg p-4 mb-4">
+                  <p className="text-red-400">❌ {couponError}</p>
+                </div>
+              )}
               {couponDiscount && (
                 <div className="bg-green-900/30 border border-green-600 rounded-lg p-4">
                   <p className="text-green-400 font-medium">

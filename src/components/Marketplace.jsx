@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useDebouncedCallback } from '../utils/debounce';
 import TemplateGallery from './TemplateGallery';
 import TutorialLibrary from './TutorialLibrary';
 import CreatorPortal from './CreatorPortal';
@@ -6,6 +7,11 @@ import CreatorPortal from './CreatorPortal';
 export default function Marketplace() {
   const [activeTab, setActiveTab] = useState('templates');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Defect #15 Fix: Debounce search to prevent excessive re-renders
+  const handleSearchChange = useDebouncedCallback((value) => {
+    setSearchQuery(value);
+  }, 300); // 300ms debounce
 
   const tabs = [
     { id: 'templates', label: '📦 Templates', icon: '📦' },
@@ -30,8 +36,8 @@ export default function Marketplace() {
             <input
               type="text"
               placeholder="Search templates, tutorials, and creators..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              defaultValue={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full px-6 py-3 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
           </div>
