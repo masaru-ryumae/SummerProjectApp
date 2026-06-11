@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "Summer Project App",
+    "slug": "summer-project-app",
+    "version": "3.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTabletMode": true,
+      "bundleIdentifier": "com.summerproject.app",
+      "infoPlist": {
+        "UIUserInterfaceStyle": "Light"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "package": "com.summerproject.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "build": {
+        "babel": {
+          "include": []
+        }
+      }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icons": ["./assets/notification-icon.png"]
+        }
+      ],
+      "expo-router"
+    ],
+    "scheme": "summerproject",
+    "extra": {
+      "router": {
+        "origin": false
+      }
+    }
+  }
+}
