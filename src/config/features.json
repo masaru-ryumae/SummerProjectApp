@@ -1,0 +1,91 @@
+{
+  "v2_features": {
+    "favorites": {
+      "enabled": true,
+      "description": "Save and bookmark projects"
+    },
+    "sharing": {
+      "enabled": true,
+      "description": "Share projects via link, email, social"
+    },
+    "progress_tracking": {
+      "enabled": true,
+      "description": "Track project progress, milestones, timeline"
+    },
+    "ratings": {
+      "enabled": true,
+      "description": "User ratings and community reviews"
+    },
+    "auth_cloud": {
+      "enabled": false,
+      "description": "Supabase auth, cloud sync, user profiles (requires Supabase)"
+    },
+    "discovery": {
+      "enabled": false,
+      "description": "Collections, skill progression, recommendations"
+    },
+    "social": {
+      "enabled": false,
+      "description": "Social features, community challenges, discussions"
+    },
+    "ux_tools": {
+      "enabled": false,
+      "description": "Advanced search, comparison, calculator, dashboard"
+    }
+  },
+  "v3_features": {
+    "ai_personalization": {
+      "enabled": false,
+      "description": "AI-powered recommendations and personalization"
+    },
+    "gamification": {
+      "enabled": false,
+      "description": "Badges, XP, streaks, leaderboards"
+    },
+    "api_integrations": {
+      "enabled": false,
+      "description": "REST API, Slack/Discord bots, OAuth integrations"
+    },
+    "analytics": {
+      "enabled": false,
+      "description": "Dashboard, charts, reports, insights"
+    },
+    "mobile_app": {
+      "enabled": false,
+      "description": "React Native iOS/Android app"
+    },
+    "team_features": {
+      "enabled": false,
+      "description": "Organization management, kanban, team chat"
+    },
+    "marketplace": {
+      "enabled": false,
+      "description": "Project templates, tutorials, creator program"
+    },
+    "monetization": {
+      "enabled": false,
+      "description": "Subscription tiers, Stripe integration"
+    },
+    "enterprise": {
+      "enabled": false,
+      "description": "RBAC, SSO, audit logging"
+    },
+    "ai_assistant": {
+      "enabled": false,
+      "description": "Chatbot, code analysis, debugging helper"
+    },
+    "webhooks_api": {
+      "enabled": false,
+      "description": "Webhook system, GraphQL API, developer portal"
+    },
+    "content_studio": {
+      "enabled": false,
+      "description": "Tutorial builder, docs generator, CMS"
+    }
+  },
+  "supabase": {
+    "enabled": false,
+    "useMock": true,
+    "description": "When true, Supabase integrations use mocks instead of real backend"
+  }
+}
